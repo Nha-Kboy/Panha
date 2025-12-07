@@ -1,16 +1,211 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ចុចដើម្បីដឹង</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Click the Button Game</title>
+  <style>
+     button {
+       font-family: 'Khmer OS battambang', system-ui, Arial, sans-serif;
+      font-size: 20px;
+      color: #fff;
+      background: #28a745;
+      border: none;
+      padding: px 24px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    body {
+      font-family: 'Khmer OS battambang', system-ui, Arial, sans-serif;
+      text-align: center;
+      background: white;
+    }
+    #gameArea {
+      position: relative;
+      width: 600px;
+      height: 400px;
+      margin: 20px auto;
+      border: 2px solid #333;
+      background:white;
+    }
+    #target {
+      position: absolute;
+      width: 80px;
+      height: 40px;
+      background: green;
+      color: black;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+    #score, #timer, #levelDisplay {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    #popupContent {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px green;
+    }
+    #popupContent h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+    .popupBtn {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 5px;
+      background: #007bff;
+      color: Black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+   <!-- Preconnect for faster font loading -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <!-- Google Fonts: Noto Sans Khmer + Kantumruy Pro -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&family=Kantumruy+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Global default for Khmer content */
+      html, body {
+        font-family: 'Khmer OS Siemreap', system-ui, Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      /* Alternate heading style */
+      h1, h2, h3 {
+        font-family: 'Khmer OS Siemreap', system-ui, sans-serif;
+        font-weight: 600;
+      }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>ចុចដើម្បីដឹង</h1>
-    <button id="learnBtn">ចុចទីនេះ</button>
-    <p id="message"></p>
+  <h1>សូមអ្នកចុច​ "ចុចមកៗ"</h1>
+  <p>ចុចមួយដងបានពិន្ទុ១ មានរយៈពេល ២០វិនាទីក្នុងមួយវគ្គ។</p>
+  
+  <div id="gameArea">
+    <button id="target">ចុចមកៗ</button>
   </div>
-  <script src="script.js"></script> </body>
+  
+  <div id="score">Score: 0</div>
+  <div id="timer">Time left: 20s</div>
+  <div id="levelDisplay">Level: 1</div>
+
+  <!-- Popup -->
+  <div id="popup">
+    <div id="popupContent">
+      <h2 id="popupMessage"></h2>
+      <button id="nextLevelBtn" class="popupBtn">Next Level</button>
+      <button id="tryAgainBtn" class="popupBtn">Try Again</button>
+    </div>
+  </div>
+
+  <script>
+    const target = document.getElementById("target");
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const levelDisplay = document.getElementById("levelDisplay");
+    const popup = document.getElementById("popup");
+    const popupMessage = document.getElementById("popupMessage");
+    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const tryAgainBtn = document.getElementById("tryAgainBtn");
+
+    let score = 0;
+    let timeLeft = 20;
+    let gameInterval;
+    let gameOver = false;
+    let level = 1;
+    const maxLevel = 3;
+
+    function moveTarget() {
+      const maxX = gameArea.clientWidth - target.clientWidth;
+      const maxY = gameArea.clientHeight - target.clientHeight;
+      const randomX = Math.floor(Math.random() * maxX);
+      const randomY = Math.floor(Math.random() * maxY);
+      target.style.left = randomX + "px";
+      target.style.top = randomY + "px";
+    }
+    target.addEventListener("click", () => {
+      if (gameOver) return;
+      score++;
+      scoreDisplay.textContent = "Score: " + score;
+      moveTarget();
+
+      if (score >= 15) {
+        clearInterval(gameInterval);
+        target.disabled = true;
+        popup.style.display = "flex";
+        if (level >= maxLevel) {
+          popupMessage.textContent = "🎉 Congratulation 🎉";
+          nextLevelBtn.style.display = "none";
+          tryAgainBtn.style.display = "inline-block";
+        } else {
+          popupMessage.textContent = "🎉 You Win 🎉";
+          nextLevelBtn.style.display = "inline-block";
+          tryAgainBtn.style.display = "none";
+        }
+        gameOver = true;
+      }
+    });
+
+    function startGame() {
+      score = 0;
+      timeLeft = 20 - (level - 1) * 5; // harder each level
+      if (timeLeft < 5) timeLeft = 5;
+      gameOver = false;
+      target.disabled = false;
+      scoreDisplay.textContent = "Score: 0";
+      timerDisplay.textContent = "Time left: " + timeLeft + "s";
+      levelDisplay.textContent = "Level: " + level;
+      popup.style.display = "none";
+      moveTarget();
+
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = "Time left: " + timeLeft + "s";
+        if (timeLeft <= 0 && !gameOver) {
+          clearInterval(gameInterval);
+          target.disabled = true;
+          popup.style.display = "flex";
+          popupMessage.textContent = "😢 Game Over!";
+          nextLevelBtn.style.display = "none";
+          tryAgainBtn.style.display = "inline-block";
+          gameOver = true;
+        }
+      }, 1000);
+    }
+
+    nextLevelBtn.addEventListener("click", () => {
+      level++;
+      startGame();
+    });
+
+    tryAgainBtn.addEventListener("click", () => {
+      level = 1;
+      startGame();
+    });
+
+    startGame();
+  </script>
+</body>
 </html>
